@@ -4,7 +4,7 @@ use hal::i2c::Transaction as I2cTrans;
 use opt300x::{FaultCount, InterruptPinPolarity};
 
 mod common;
-use common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
+use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
 
 #[test]
 fn can_create_and_destroy() {
