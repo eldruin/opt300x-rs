@@ -3,7 +3,7 @@ extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
 
 mod common;
-use common::{destroy, new_opt3001, Register as Reg, DEV_ADDR};
+use common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
 
 #[test]
 fn can_create_and_destroy() {
@@ -76,3 +76,6 @@ read_test!(raw_5242_3, read_raw, RESULT, 0xA200, (0xA, 0x200));
 read_test!(raw_5242_4, read_raw, RESULT, 0xB100, (0xB, 0x100));
 read_test!(raw_20, read_raw, RESULT, 0xB001, (0xB, 0x01));
 read_test!(raw_83k, read_raw, RESULT, 0xBFFF, (0xB, 0xFFF));
+
+read_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
+read_test!(no_overflow, has_overflown, CONFIG, 0, false);

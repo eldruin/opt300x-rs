@@ -11,6 +11,11 @@ impl Register {
     const DEVICE_ID: u8 = 0x7F;
 }
 
+struct BitFlags;
+impl BitFlags {
+    const OVF: u16 = 1 << 8;
+}
+
 impl<I2C, E> Opt300x<I2C, ic::Opt3001>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
@@ -47,6 +52,11 @@ where
     pub fn read_raw(&mut self) -> Result<(u8, u16), Error<E>> {
         let result = self.read_register(Register::RESULT)?;
         Ok(((result >> 12) as u8, result & 0xFFF))
+    }
+
+    /// Read whether an overflow condition has occurred
+    pub fn has_overflown(&mut self) -> Result<bool, Error<E>> {
+        Ok((self.read_register(Register::CONFIG)? & BitFlags::OVF) != 0)
     }
 
     /// Read the manifacturer ID
