@@ -16,14 +16,13 @@ impl Register {
 
 struct BitFlags;
 impl BitFlags {
+    const MODE1: u16 = 1 << 10;
+    const MODE0: u16 = 1 << 9;
     const OVF: u16 = 1 << 8;
     const POL: u16 = 1 << 3;
 }
 
-impl<I2C, E> Opt300x<I2C, ic::Opt3001>
-where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
-{
+impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
     /// Create new instance of the OPT3001 device.
     pub fn new_opt3001(i2c: I2C, address: SlaveAddr) -> Self {
         Opt300x {
@@ -31,19 +30,74 @@ where
             address: address.addr(),
             config: Config { bits: 0xC810 },
             _ic: PhantomData,
+            _mode: PhantomData,
         }
     }
 }
 
-impl<I2C, E, IC> Opt300x<I2C, IC>
-where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
-{
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
     /// Destroy driver instance, return I²C bus instance.
     pub fn destroy(self) -> I2C {
         self.i2c
     }
+}
 
+impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
+where
+    I2C: i2c::Write<Error = E>,
+{
+    /// Change into continuous measurement mode
+    pub fn into_continuous(
+        mut self,
+    ) -> Result<Opt300x<I2C, IC, mode::Continuous>, ModeChangeError<E, Self>> {
+        if let Err(Error::I2C(e)) = self.set_config(
+            self.config
+                .with_high(BitFlags::MODE0)
+                .with_high(BitFlags::MODE1),
+        ) {
+            return Err(ModeChangeError::I2C(e, self));
+        }
+        Ok(Opt300x {
+            i2c: self.i2c,
+            address: self.address,
+            config: self.config,
+            _ic: PhantomData,
+            _mode: PhantomData,
+        })
+    }
+}
+
+impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
+where
+    I2C: i2c::Write<Error = E>,
+{
+    /// Change into one-shot mode
+    ///
+    /// This will actually shut down the device until a measurement is requested.
+    pub fn into_one_shot(
+        mut self,
+    ) -> Result<Opt300x<I2C, IC, mode::OneShot>, ModeChangeError<E, Self>> {
+        if let Err(Error::I2C(e)) = self.set_config(
+            self.config
+                .with_low(BitFlags::MODE0)
+                .with_low(BitFlags::MODE1),
+        ) {
+            return Err(ModeChangeError::I2C(e, self));
+        }
+        Ok(Opt300x {
+            i2c: self.i2c,
+            address: self.address,
+            config: self.config,
+            _ic: PhantomData,
+            _mode: PhantomData,
+        })
+    }
+}
+
+impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
+where
+    I2C: i2c::WriteRead<Error = E>,
+{
     /// Read the result of the most recent light to digital conversion in lux
     pub fn read_lux(&mut self) -> Result<f32, Error<E>> {
         let result = self.read_register(Register::RESULT)?;
@@ -58,7 +112,12 @@ where
         let result = self.read_register(Register::RESULT)?;
         Ok(((result >> 12) as u8, result & 0xFFF))
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
     /// Read whether an overflow condition has occurred
     pub fn has_overflown(&mut self) -> Result<bool, Error<E>> {
         Ok((self.read_register(Register::CONFIG)? & BitFlags::OVF) != 0)
@@ -97,7 +156,12 @@ where
     pub fn get_device_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::DEVICE_ID)
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::WriteRead<Error = E>,
+{
     fn read_register(&mut self, register: u8) -> Result<u16, Error<E>> {
         let mut data = [0, 0];
         self.i2c
@@ -105,7 +169,12 @@ where
             .map_err(Error::I2C)
             .and(Ok(u16::from(data[0]) << 8 | u16::from(data[1])))
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::Write<Error = E>,
+{
     fn set_config(&mut self, config: Config) -> Result<(), Error<E>> {
         let data = [
             Register::CONFIG,

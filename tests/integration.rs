@@ -12,7 +12,7 @@ fn can_create_and_destroy() {
     destroy(sensor);
 }
 
-macro_rules! read_test {
+macro_rules! get_test {
     ($name:ident, $method:ident, $register:ident, $value:expr, $expected:expr) => {
         #[test]
         fn $name() {
@@ -29,8 +29,8 @@ macro_rules! read_test {
     };
 }
 
-read_test!(can_read_dev_id, get_device_id, DEVICE_ID, 0xABCD, 0xABCD);
-read_test!(
+get_test!(can_read_dev_id, get_device_id, DEVICE_ID, 0xABCD, 0xABCD);
+get_test!(
     can_read_manuf_id,
     get_manufacturer_id,
     MANUFACTURER_ID,
@@ -39,15 +39,26 @@ read_test!(
 );
 
 macro_rules! read_lux_test {
-    ($name:ident, $register:expr, $expected:expr) => {
+    ($name:ident, $value:expr, $expected:expr) => {
         #[test]
         fn $name() {
-            let transactions = [I2cTrans::write_read(
-                DEV_ADDR,
-                vec![Reg::RESULT],
-                vec![($register >> 8) as u8, ($register & 0xFF) as u8],
-            )];
-            let mut sensor = new_opt3001(&transactions);
+            let transactions = [
+                I2cTrans::write(
+                    DEV_ADDR,
+                    vec![
+                        Reg::CONFIG,
+                        ((CFG_DEFAULT | BF::MODE0 | BF::MODE1) >> 8) as u8,
+                        CFG_DEFAULT as u8,
+                    ],
+                ),
+                I2cTrans::write_read(
+                    DEV_ADDR,
+                    vec![Reg::RESULT],
+                    vec![($value >> 8) as u8, ($value & 0xFF) as u8],
+                ),
+            ];
+            let sensor = new_opt3001(&transactions);
+            let mut sensor = sensor.into_continuous().ok().unwrap();
             let result = sensor.read_lux().unwrap();
             assert!(result > $expected - 0.5);
             assert!(result < $expected + 0.5);
@@ -67,19 +78,47 @@ read_lux_test!(lux_5242_4, 0xB100, 5242.88);
 read_lux_test!(lux_20, 0xB001, 20.48);
 read_lux_test!(lux_83k, 0xBFFF, 83865.60);
 
-read_test!(raw_0_01, read_raw, RESULT, 0x01, (0, 0x01));
-read_test!(raw_40, read_raw, RESULT, 0xFFF, (0, 0xFFF));
-read_test!(raw_88, read_raw, RESULT, 0x3456, (0x3, 0x456));
-read_test!(raw_2818, read_raw, RESULT, 0x789A, (0x7, 0x89A));
-read_test!(raw_5242_1, read_raw, RESULT, 0x8800, (0x8, 0x800));
-read_test!(raw_5242_2, read_raw, RESULT, 0x9400, (0x9, 0x400));
-read_test!(raw_5242_3, read_raw, RESULT, 0xA200, (0xA, 0x200));
-read_test!(raw_5242_4, read_raw, RESULT, 0xB100, (0xB, 0x100));
-read_test!(raw_20, read_raw, RESULT, 0xB001, (0xB, 0x01));
-read_test!(raw_83k, read_raw, RESULT, 0xBFFF, (0xB, 0xFFF));
+macro_rules! read_raw_test {
+    ($name:ident, $value:expr, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(
+                    DEV_ADDR,
+                    vec![
+                        Reg::CONFIG,
+                        ((CFG_DEFAULT | BF::MODE0 | BF::MODE1) >> 8) as u8,
+                        CFG_DEFAULT as u8,
+                    ],
+                ),
+                I2cTrans::write_read(
+                    DEV_ADDR,
+                    vec![Reg::RESULT],
+                    vec![($value >> 8) as u8, ($value & 0xFF) as u8],
+                ),
+            ];
+            let sensor = new_opt3001(&transactions);
+            let mut sensor = sensor.into_continuous().ok().unwrap();
+            let result = sensor.read_raw().unwrap();
+            assert_eq!($expected, result);
+            destroy(sensor);
+        }
+    };
+}
 
-read_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
-read_test!(no_overflow, has_overflown, CONFIG, 0, false);
+read_raw_test!(raw_0_01, 0x01, (0, 0x01));
+read_raw_test!(raw_40, 0xFFF, (0, 0xFFF));
+read_raw_test!(raw_88, 0x3456, (0x3, 0x456));
+read_raw_test!(raw_2818, 0x789A, (0x7, 0x89A));
+read_raw_test!(raw_5242_1, 0x8800, (0x8, 0x800));
+read_raw_test!(raw_5242_2, 0x9400, (0x9, 0x400));
+read_raw_test!(raw_5242_3, 0xA200, (0xA, 0x200));
+read_raw_test!(raw_5242_4, 0xB100, (0xB, 0x100));
+read_raw_test!(raw_20, 0xB001, (0xB, 0x01));
+read_raw_test!(raw_83k, 0xBFFF, (0xB, 0xFFF));
+
+get_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
+get_test!(no_overflow, has_overflown, CONFIG, 0, false);
 
 macro_rules! cfg_test {
     ($name:ident, $method:ident, $value:expr $(, $arg:expr)*) => {
@@ -113,3 +152,34 @@ cfg_test!(
     CFG_DEFAULT | BF::POL,
     InterruptPinPolarity::High
 );
+
+#[test]
+fn can_change_mode() {
+    let transactions = [
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![
+                Reg::CONFIG,
+                ((CFG_DEFAULT | BF::MODE0 | BF::MODE1) >> 8) as u8,
+                CFG_DEFAULT as u8,
+            ],
+        ),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![Reg::CONFIG, (CFG_DEFAULT >> 8) as u8, CFG_DEFAULT as u8],
+        ),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![
+                Reg::CONFIG,
+                ((CFG_DEFAULT | BF::MODE0 | BF::MODE1) >> 8) as u8,
+                CFG_DEFAULT as u8,
+            ],
+        ),
+    ];
+    let sensor = new_opt3001(&transactions);
+    let sensor = sensor.into_continuous().ok().unwrap();
+    let sensor = sensor.into_one_shot().ok().unwrap();
+    let sensor = sensor.into_continuous().ok().unwrap();
+    destroy(sensor);
+}

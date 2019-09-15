@@ -49,11 +49,22 @@
 use core::marker::PhantomData;
 extern crate embedded_hal as hal;
 
-/// All possible errors in this crate
+/// Errors in this crate
 #[derive(Debug)]
 pub enum Error<E> {
     /// I²C bus communication error
     I2C(E),
+}
+
+/// Error type for mode changes.
+///
+/// This allows to retrieve the unchanged device in case of an error.
+pub enum ModeChangeError<E, DEV> {
+    /// I²C bus error while changing mode.
+    ///
+    /// `E` is the error that happened.
+    /// `DEV` is the device with the mode unchanged.
+    I2C(E, DEV),
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
@@ -81,13 +92,22 @@ pub mod ic {
     pub struct Opt3001(());
 }
 
+/// Mode marker
+pub mod mode {
+    /// One shot mode
+    pub struct OneShot(());
+    /// Continuous measurement mode
+    pub struct Continuous(());
+}
+
 /// OPT300x device driver
 #[derive(Debug)]
-pub struct Opt300x<I2C, IC> {
+pub struct Opt300x<I2C, IC, MODE> {
     i2c: I2C,
     address: u8,
     config: Config,
     _ic: PhantomData<IC>,
+    _mode: PhantomData<MODE>,
 }
 
 /// Possible slave addresses
@@ -127,8 +147,10 @@ mod device_impl;
 mod slave_addr;
 
 mod private {
-    use super::ic;
+    use super::{ic, mode};
     pub trait Sealed {}
 
     impl Sealed for ic::Opt3001 {}
+    impl Sealed for mode::OneShot {}
+    impl Sealed for mode::Continuous {}
 }
