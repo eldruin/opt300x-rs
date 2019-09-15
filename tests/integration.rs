@@ -1,6 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
+use opt300x::{FaultCount, InterruptPinPolarity};
 
 mod common;
 use common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
@@ -79,3 +80,36 @@ read_test!(raw_83k, read_raw, RESULT, 0xBFFF, (0xB, 0xFFF));
 
 read_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
 read_test!(no_overflow, has_overflown, CONFIG, 0, false);
+
+macro_rules! cfg_test {
+    ($name:ident, $method:ident, $value:expr $(, $arg:expr)*) => {
+        #[test]
+        fn $name() {
+            let transactions = [I2cTrans::write(
+                DEV_ADDR,
+                vec![Reg::CONFIG, ($value >> 8) as u8, $value as u8],
+            )];
+            let mut sensor = new_opt3001(&transactions);
+            sensor.$method($($arg),*).unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+cfg_test!(faultc1, set_fault_count, CFG_DEFAULT, FaultCount::One);
+cfg_test!(faultc2, set_fault_count, CFG_DEFAULT | 1, FaultCount::Two);
+cfg_test!(faultc4, set_fault_count, CFG_DEFAULT | 2, FaultCount::Four);
+cfg_test!(faultc8, set_fault_count, CFG_DEFAULT | 3, FaultCount::Eight);
+
+cfg_test!(
+    int_pin_polarity_low,
+    set_interrupt_pin_polarity,
+    CFG_DEFAULT,
+    InterruptPinPolarity::Low
+);
+cfg_test!(
+    int_pin_polarity_high,
+    set_interrupt_pin_polarity,
+    CFG_DEFAULT | BF::POL,
+    InterruptPinPolarity::High
+);

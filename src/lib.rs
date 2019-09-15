@@ -56,6 +56,24 @@ pub enum Error<E> {
     I2C(E),
 }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+struct Config {
+    bits: u16,
+}
+
+impl Config {
+    fn with_high(self, mask: u16) -> Self {
+        Config {
+            bits: self.bits | mask,
+        }
+    }
+    fn with_low(self, mask: u16) -> Self {
+        Config {
+            bits: self.bits & !mask,
+        }
+    }
+}
+
 /// IC markers
 #[doc(hidden)]
 pub mod ic {
@@ -68,6 +86,7 @@ pub mod ic {
 pub struct Opt300x<I2C, IC> {
     i2c: I2C,
     address: u8,
+    config: Config,
     _ic: PhantomData<IC>,
 }
 
@@ -78,6 +97,30 @@ pub enum SlaveAddr {
     Default,
     /// Alternative slave address providing bit values for A1 and A0
     Alternative(bool, bool),
+}
+
+/// Fault count
+///
+/// Number of consecutive fault events necessary to trigger interrupt.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FaultCount {
+    /// One (default)
+    One,
+    /// Two
+    Two,
+    /// Four
+    Four,
+    /// Eight
+    Eight,
+}
+
+/// Interrupt pin polarity (active state)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum InterruptPinPolarity {
+    /// Active low (default)
+    Low,
+    /// Active high
+    High,
 }
 
 mod device_impl;

@@ -19,6 +19,7 @@ pub struct BitFlags;
 #[allow(unused)]
 impl BitFlags {
     pub const OVF: u16 = 1 << 8;
+    pub const POL: u16 = 1 << 3;
 }
 
 #[allow(unused)]
