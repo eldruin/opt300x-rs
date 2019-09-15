@@ -1,5 +1,8 @@
-use hal::blocking::i2c;
-use {ic, Config, Error, FaultCount, InterruptPinPolarity, Opt300x, PhantomData, SlaveAddr};
+use crate::hal::blocking::i2c;
+use crate::{
+    ic, mode, Config, Error, FaultCount, InterruptPinPolarity, ModeChangeError, Opt300x,
+    PhantomData, SlaveAddr,
+};
 
 struct Register;
 impl Register {

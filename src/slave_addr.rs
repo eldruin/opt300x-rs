@@ -1,5 +1,5 @@
 //! Slave address implementation
-use SlaveAddr;
+use crate::SlaveAddr;
 
 const DEVICE_BASE_ADDRESS: u8 = 0b100_0100;
 
