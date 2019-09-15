@@ -46,3 +46,46 @@
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
+use core::marker::PhantomData;
+extern crate embedded_hal as hal;
+
+/// All possible errors in this crate
+#[derive(Debug)]
+pub enum Error<E> {
+    /// I²C bus communication error
+    I2C(E),
+}
+
+/// IC markers
+#[doc(hidden)]
+pub mod ic {
+    /// Used for OPT3001 devices
+    pub struct Opt3001(());
+}
+
+/// OPT300x device driver
+#[derive(Debug)]
+pub struct Opt300x<I2C, IC> {
+    i2c: I2C,
+    address: u8,
+    _ic: PhantomData<IC>,
+}
+
+/// Possible slave addresses
+#[derive(Debug, Clone, Copy)]
+pub enum SlaveAddr {
+    /// Default slave address
+    Default,
+    /// Alternative slave address providing bit values for A1 and A0
+    Alternative(bool, bool),
+}
+
+mod device_impl;
+mod slave_addr;
+
+mod private {
+    use super::ic;
+    pub trait Sealed {}
+
+    impl Sealed for ic::Opt3001 {}
+}
