@@ -1,7 +1,7 @@
 use crate::hal::blocking::i2c;
 use crate::{
-    ic, mode, Config, Error, FaultCount, InterruptPinPolarity, LuxRange, ModeChangeError, Opt300x,
-    PhantomData, SlaveAddr,
+    ic, mode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange,
+    ModeChangeError, Opt300x, PhantomData, SlaveAddr,
 };
 
 struct Register;
@@ -16,6 +16,7 @@ impl Register {
 
 struct BitFlags;
 impl BitFlags {
+    const CT: u16 = 1 << 11;
     const MODE1: u16 = 1 << 10;
     const MODE0: u16 = 1 << 9;
     const OVF: u16 = 1 << 8;
@@ -149,6 +150,15 @@ where
         self.set_config(Config {
             bits: config | (u16::from(value) << 12),
         })
+    }
+
+    /// Set the integration (conversion) time.
+    pub fn set_integration_time(&mut self, time: IntegrationTime) -> Result<(), Error<E>> {
+        let config = match time {
+            IntegrationTime::Ms100 => self.config.with_low(BitFlags::CT),
+            IntegrationTime::Ms800 => self.config.with_high(BitFlags::CT),
+        };
+        self.set_config(config)
     }
 
     /// Set the interrupt pin polarity

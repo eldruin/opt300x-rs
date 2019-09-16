@@ -154,6 +154,15 @@ pub enum LuxRange {
     Auto,
 }
 
+/// Integration time
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IntegrationTime {
+    /// 100 ms
+    Ms100,
+    /// 800 ms
+    Ms800,
+}
+
 mod device_impl;
 mod slave_addr;
 

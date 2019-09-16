@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
-use opt300x::{Error, FaultCount, InterruptPinPolarity, LuxRange};
+use opt300x::{Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange};
 
 mod common;
 use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
@@ -208,4 +208,18 @@ cfg_test!(
     set_lux_range,
     CFG_DEFAULT & 0x0FFF | 0b1011 << 12,
     LuxRange::Manual(0b1011)
+);
+
+cfg_test!(
+    set_integration_time_100,
+    set_integration_time,
+    CFG_DEFAULT & !BF::CT,
+    IntegrationTime::Ms100
+);
+
+cfg_test!(
+    set_integration_time_800,
+    set_integration_time,
+    CFG_DEFAULT | BF::CT,
+    IntegrationTime::Ms800
 );

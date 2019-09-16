@@ -18,6 +18,7 @@ impl Register {
 pub struct BitFlags;
 #[allow(unused)]
 impl BitFlags {
+    pub const CT: u16 = 1 << 11;
     pub const MODE1: u16 = 1 << 10;
     pub const MODE0: u16 = 1 << 9;
     pub const OVF: u16 = 1 << 8;
