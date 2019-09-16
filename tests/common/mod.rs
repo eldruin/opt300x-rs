@@ -32,3 +32,25 @@ pub fn new_opt3001(transactions: &[I2cTrans]) -> Opt300x<I2cMock, ic::Opt3001, m
 pub fn destroy<IC, MODE>(sensor: Opt300x<I2cMock, IC, MODE>) {
     sensor.destroy().done();
 }
+
+#[macro_export]
+macro_rules! assert_invalid_input_data {
+    ($result:expr) => {
+        match $result {
+            Err(Error::InvalidInputData) => (),
+            _ => panic!("InvalidInputData error not returned."),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! set_invalid_test {
+    ($name:ident, $create_method:ident, $destroy_method:ident, $method:ident $(, $value:expr)*) => {
+        #[test]
+        fn $name() {
+            let mut dev = $create_method(&[]);
+            assert_invalid_input_data!(dev.$method($($value),*));
+            $destroy_method(dev);
+        }
+    };
+}

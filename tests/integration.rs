@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
-use opt300x::{FaultCount, InterruptPinPolarity};
+use opt300x::{Error, FaultCount, InterruptPinPolarity, LuxRange};
 
 mod common;
 use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
@@ -183,3 +183,29 @@ fn can_change_mode() {
     let sensor = sensor.into_continuous().ok().unwrap();
     destroy(sensor);
 }
+
+set_invalid_test!(
+    too_high_lux_range,
+    new_opt3001,
+    destroy,
+    set_lux_range,
+    LuxRange::Manual(0b1100)
+);
+cfg_test!(
+    set_lux_range_auto,
+    set_lux_range,
+    CFG_DEFAULT,
+    LuxRange::Auto
+);
+cfg_test!(
+    set_lux_range_manual_0,
+    set_lux_range,
+    CFG_DEFAULT & 0x0FFF,
+    LuxRange::Manual(0)
+);
+cfg_test!(
+    set_lux_range_manual_max,
+    set_lux_range,
+    CFG_DEFAULT & 0x0FFF | 0b1011 << 12,
+    LuxRange::Manual(0b1011)
+);

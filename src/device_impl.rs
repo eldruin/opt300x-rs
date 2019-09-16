@@ -1,6 +1,6 @@
 use crate::hal::blocking::i2c;
 use crate::{
-    ic, mode, Config, Error, FaultCount, InterruptPinPolarity, ModeChangeError, Opt300x,
+    ic, mode, Config, Error, FaultCount, InterruptPinPolarity, LuxRange, ModeChangeError, Opt300x,
     PhantomData, SlaveAddr,
 };
 
@@ -133,6 +133,22 @@ where
             FaultCount::Eight => config | 0b11,
         };
         self.set_config(Config { bits: config })
+    }
+
+    /// Set the lux range.
+    ///
+    /// `Error::InvalidInputData` will be returned for manual values outside
+    /// the valid range.
+    pub fn set_lux_range(&mut self, range: LuxRange) -> Result<(), Error<E>> {
+        let value = match range {
+            LuxRange::Auto => Ok(0b1100),
+            LuxRange::Manual(rn) if rn >= 0b1100 => Err(Error::InvalidInputData),
+            LuxRange::Manual(rn) => Ok(rn),
+        }?;
+        let config = self.config.bits & 0x0FFF;
+        self.set_config(Config {
+            bits: config | (u16::from(value) << 12),
+        })
     }
 
     /// Set the interrupt pin polarity

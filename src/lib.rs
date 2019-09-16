@@ -54,6 +54,8 @@ extern crate embedded_hal as hal;
 pub enum Error<E> {
     /// I²C bus communication error
     I2C(E),
+    /// Invalid input data provided
+    InvalidInputData,
 }
 
 /// Error type for mode changes.
@@ -141,6 +143,15 @@ pub enum InterruptPinPolarity {
     Low,
     /// Active high
     High,
+}
+
+/// Lux range
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum LuxRange {
+    /// Manual [0-11]
+    Manual(u8),
+    /// Automatic selection (default)
+    Auto,
 }
 
 mod device_impl;
