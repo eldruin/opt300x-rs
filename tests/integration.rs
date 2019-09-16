@@ -223,3 +223,14 @@ cfg_test!(
     CFG_DEFAULT | BF::CT,
     IntegrationTime::Ms800
 );
+
+cfg_test!(
+    enable_exponent_masking,
+    enable_exponent_masking,
+    CFG_DEFAULT | BF::ME
+);
+cfg_test!(
+    disable_exponent_masking,
+    disable_exponent_masking,
+    CFG_DEFAULT & !BF::ME
+);

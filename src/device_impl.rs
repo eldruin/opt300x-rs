@@ -21,6 +21,7 @@ impl BitFlags {
     const MODE0: u16 = 1 << 9;
     const OVF: u16 = 1 << 8;
     const POL: u16 = 1 << 3;
+    const ME: u16 = 1 << 2;
 }
 
 impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
@@ -171,6 +172,16 @@ where
             InterruptPinPolarity::High => self.config.with_high(BitFlags::POL),
         };
         self.set_config(config)
+    }
+
+    /// Enable exponent masking.
+    pub fn enable_exponent_masking(&mut self) -> Result<(), Error<E>> {
+        self.set_config(self.config.with_high(BitFlags::ME))
+    }
+
+    /// Disable exponent masking (default).
+    pub fn disable_exponent_masking(&mut self) -> Result<(), Error<E>> {
+        self.set_config(self.config.with_low(BitFlags::ME))
     }
 
     /// Read the manifacturer ID
