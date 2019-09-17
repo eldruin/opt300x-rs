@@ -1,7 +1,7 @@
 use crate::hal::blocking::i2c;
 use crate::{
-    ic, mode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange,
-    ModeChangeError, Opt300x, PhantomData, SlaveAddr,
+    ic, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity,
+    LuxRange, ModeChangeError, Opt300x, PhantomData, SlaveAddr,
 };
 
 struct Register;
@@ -20,6 +20,7 @@ impl BitFlags {
     const MODE1: u16 = 1 << 10;
     const MODE0: u16 = 1 << 9;
     const OVF: u16 = 1 << 8;
+    const L: u16 = 1 << 4;
     const POL: u16 = 1 << 3;
     const ME: u16 = 1 << 2;
 }
@@ -182,6 +183,15 @@ where
     /// Disable exponent masking (default).
     pub fn disable_exponent_masking(&mut self) -> Result<(), Error<E>> {
         self.set_config(self.config.with_low(BitFlags::ME))
+    }
+
+    /// Set result comparison mode for interrupt reporting
+    pub fn set_comparison_mode(&mut self, mode: ComparisonMode) -> Result<(), Error<E>> {
+        let config = match mode {
+            ComparisonMode::LatchedWindow => self.config.with_high(BitFlags::L),
+            ComparisonMode::TransparentHysteresis => self.config.with_low(BitFlags::L),
+        };
+        self.set_config(config)
     }
 
     /// Read the manifacturer ID

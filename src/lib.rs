@@ -163,6 +163,15 @@ pub enum IntegrationTime {
     Ms800,
 }
 
+/// Result comparison mode for interrupt reporting
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ComparisonMode {
+    /// Latched window-style
+    LatchedWindow,
+    /// Transparent hysteresis-style (default)
+    TransparentHysteresis,
+}
+
 mod device_impl;
 mod slave_addr;
 

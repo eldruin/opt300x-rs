@@ -22,6 +22,7 @@ impl BitFlags {
     pub const MODE1: u16 = 1 << 10;
     pub const MODE0: u16 = 1 << 9;
     pub const OVF: u16 = 1 << 8;
+    pub const L: u16 = 1 << 4;
     pub const POL: u16 = 1 << 3;
     pub const ME: u16 = 1 << 2;
 }

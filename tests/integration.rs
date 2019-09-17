@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
-use opt300x::{Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange};
+use opt300x::{ComparisonMode, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange};
 
 mod common;
 use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
@@ -151,6 +151,20 @@ cfg_test!(
     set_interrupt_pin_polarity,
     CFG_DEFAULT | BF::POL,
     InterruptPinPolarity::High
+);
+
+cfg_test!(
+    comp_mode_latched_window,
+    set_comparison_mode,
+    CFG_DEFAULT,
+    ComparisonMode::LatchedWindow
+);
+
+cfg_test!(
+    comp_mode_transparent,
+    set_comparison_mode,
+    CFG_DEFAULT & !BF::L,
+    ComparisonMode::TransparentHysteresis
 );
 
 #[test]
