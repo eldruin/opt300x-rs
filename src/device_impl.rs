@@ -194,6 +194,19 @@ where
         self.set_config(config)
     }
 
+    /// Set the lux low limit in raw format (exponent, mantissa).
+    ///
+    /// Returns `Error::InvalidInputData` for an exponent value greater than
+    /// 11 or a mantissa value greater than 4095.
+    ///
+    /// Note that this disables the end-of-conversion mode.
+    pub fn set_low_limit_raw(&mut self, exponent: u8, mantissa: u16) -> Result<(), Error<E>> {
+        if exponent > 0b1011 || mantissa > 0xFFF {
+            return Err(Error::InvalidInputData);
+        }
+        let limit = u16::from(exponent) << 12 | mantissa;
+        self.write_register(Register::LOW_LIMIT, limit)
+    }
     /// Read the manifacturer ID
     pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::MANUFACTURER_ID)

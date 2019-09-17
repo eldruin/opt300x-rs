@@ -248,3 +248,19 @@ cfg_test!(
     disable_exponent_masking,
     CFG_DEFAULT & !BF::ME
 );
+macro_rules! invalid_test {
+    ($name:ident, $method:ident $(, $arg:expr)*) => {
+        #[test]
+        fn $name() {
+            let mut sensor = new_opt3001(&[]);
+            if let Err(Error::InvalidInputData) = sensor.$method($($arg),*) { }
+            else {
+                panic!("Should have returned error");
+            }
+            destroy(sensor);
+        }
+    };
+}
+
+invalid_test!(low_limit_exp_too_big, set_low_limit_raw, 0b1100, 0);
+invalid_test!(low_limit_mant_too_big, set_low_limit_raw, 0, 0x1000);
