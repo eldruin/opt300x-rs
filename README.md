@@ -10,10 +10,19 @@
 This is a platform agnostic Rust driver for the OPT300x ambient light sensor
 family using the [`embedded-hal`] traits.
 
-<!--TODO
 This driver allows you to:
-- Enable/disable the device. See `enable()`.
+- Read the measurement in lux or raw. See: `read_lux()`.
+- Change into continuous measurement mode. See: `into_continuous()`.
+- Read the conversion status. See: `read_status()`.
+- Set the fault count. See: `set_fault_count()`.
+- Set the interrupt pin polarity. See: `set_interrupt_pin_polarity()`.
+- Set the comparison mode. See: `set_comparison_mode()`.
+- Set the low and high limits. See: `set_low_limit_raw()`.
+- Enable and disable end-of-conversion mode. See: `enable_end_of_conversion_mode()`.
+- Get the manufacturer ID. See: `get_manufacturer_id()`.
+- Get the device ID. See: `get_device_id()`.
 
+<!--TODO
 [Introductory blog post](https://blog.eldruin.com/...)
 -->
 

@@ -2,7 +2,30 @@
 //! sensors using the [`embedded-hal`] traits.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
-//!
+//! 
+//! This driver allows you to:
+//! - Read the measurement in lux or raw. See: [`read_lux()`].
+//! - Change into continuous measurement mode. See: [`into_continuous()`].
+//! - Read the conversion status. See: [`read_status()`].
+//! - Set the fault count. See: [`set_fault_count()`].
+//! - Set the interrupt pin polarity. See: [`set_interrupt_pin_polarity()`].
+//! - Set the comparison mode. See: [`set_comparison_mode()`].
+//! - Set the low and high limits. See: [`set_low_limit_raw()`].
+//! - Enable and disable end-of-conversion mode. See: [`enable_end_of_conversion_mode()`].
+//! - Get the manufacturer ID. See: [`get_manufacturer_id()`].
+//! - Get the device ID. See: [`get_device_id()`].
+//! 
+//! [`read_lux()`]: struct.Opt300x.html#method.read_lux
+//! [`into_continuous()`]: struct.Opt300x.html#method.into_continuous
+//! [`read_status()`]: struct.Opt300x.html#method.read_status
+//! [`set_fault_count()`]: struct.Opt300x.html#method.set_fault_count
+//! [`set_interrupt_pin_polarity()`]: struct.Opt300x.html#method.set_interrupt_pin_polarity
+//! [`set_comparison_mode()`]: struct.Opt300x.html#method.set_comparison_mode
+//! [`set_low_limit_raw()`]: struct.Opt300x.html#method.set_low_limit_raw
+//! [`enable_end_of_conversion_mode()`]: struct.Opt300x.html#method.enable_end_of_conversion_mode
+//! [`get_manufacturer_id()`]: struct.Opt300x.html#method.get_manufacturer_id
+//! [`get_device_id()`]: struct.Opt300x.html#method.get_device_id
+//! 
 //! ## The devices
 //!
 //! This driver is compatible with the devices OPT3001, OPT3002, OPT3004,
