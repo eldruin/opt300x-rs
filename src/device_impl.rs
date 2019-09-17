@@ -1,7 +1,7 @@
 use crate::hal::blocking::i2c;
 use crate::{
     ic, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity,
-    LuxRange, ModeChangeError, Opt300x, PhantomData, SlaveAddr, Status,
+    LuxRange, Measurement, ModeChangeError, Opt300x, PhantomData, SlaveAddr, Status,
 };
 
 struct Register;
@@ -36,6 +36,7 @@ impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
             address: address.addr(),
             config: Config { bits: 0xC810 },
             low_limit: 0,
+            was_conversion_started: false,
             _ic: PhantomData,
             _mode: PhantomData,
         }
@@ -69,6 +70,7 @@ where
             address: self.address,
             config: self.config,
             low_limit: self.low_limit,
+            was_conversion_started: false,
             _ic: PhantomData,
             _mode: PhantomData,
         })
@@ -97,6 +99,7 @@ where
             address: self.address,
             config: self.config,
             low_limit: self.low_limit,
+            was_conversion_started: false,
             _ic: PhantomData,
             _mode: PhantomData,
         })
@@ -109,10 +112,8 @@ where
 {
     /// Read the result of the most recent light to digital conversion in lux
     pub fn read_lux(&mut self) -> Result<f32, Error<E>> {
-        let result = self.read_register(Register::RESULT)?;
-        let exp = result >> 12;
-        let mantissa = result & 0xFFF;
-        Ok((f64::from(1 << exp) * 0.01 * f64::from(mantissa)) as f32)
+        let result = self.read_raw()?;
+        Ok(raw_to_lux(result))
     }
 
     /// Read the result of the most recent light to digital conversion in
@@ -120,6 +121,50 @@ where
     pub fn read_raw(&mut self) -> Result<(u8, u16), Error<E>> {
         let result = self.read_register(Register::RESULT)?;
         Ok(((result >> 12) as u8, result & 0xFFF))
+    }
+}
+
+fn raw_to_lux(result: (u8, u16)) -> f32 {
+    (f64::from(1 << result.0) * 0.01 * f64::from(result.1)) as f32
+}
+
+impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
+    /// Read the result of the most recent light to digital conversion in lux
+    pub fn read_lux(&mut self) -> nb::Result<Measurement<f32>, Error<E>> {
+        let measurement = self.read_raw()?;
+        Ok(Measurement {
+            result: raw_to_lux(measurement.result),
+            status: measurement.status,
+        })
+    }
+
+    /// Read the result of the most recent light to digital conversion in
+    /// raw format: (exponent, mantissa)
+    pub fn read_raw(&mut self) -> nb::Result<Measurement<(u8, u16)>, Error<E>> {
+        if self.was_conversion_started {
+            let status = self.read_status().map_err(nb::Error::Other)?;
+            if status.conversion_ready {
+                let result = self
+                    .read_register(Register::RESULT)
+                    .map_err(nb::Error::Other)?;
+                self.was_conversion_started = false;
+                Ok(Measurement {
+                    result: ((result >> 12) as u8, result & 0xFFF),
+                    status,
+                })
+            } else {
+                Err(nb::Error::WouldBlock)
+            }
+        } else {
+            let config = self.config.with_high(BitFlags::MODE0);
+            self.write_register(Register::CONFIG, config.bits)
+                .map_err(nb::Error::Other)?;
+            self.was_conversion_started = true;
+            Err(nb::Error::WouldBlock)
+        }
     }
 }
 

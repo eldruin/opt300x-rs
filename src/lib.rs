@@ -48,6 +48,7 @@
 
 use core::marker::PhantomData;
 extern crate embedded_hal as hal;
+extern crate nb;
 
 /// Errors in this crate
 #[derive(Debug)]
@@ -109,6 +110,7 @@ pub struct Opt300x<I2C, IC, MODE> {
     address: u8,
     config: Config,
     low_limit: u16,
+    was_conversion_started: bool,
     _ic: PhantomData<IC>,
     _mode: PhantomData<MODE>,
 }
@@ -184,6 +186,15 @@ pub struct Status {
     pub was_too_high: bool,
     /// Whether the result is lower than the configured low limit.
     pub was_too_low: bool,
+}
+
+/// One-shot measurement
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Measurement<T> {
+    /// Result
+    pub result: T,
+    /// Conversion status.
+    pub status: Status,
 }
 
 mod device_impl;
