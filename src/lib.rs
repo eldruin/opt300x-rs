@@ -3,6 +3,11 @@
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
+//! ## The devices
+//!
+//! This driver is compatible with the devices OPT3001, OPT3002, OPT3004,
+//! OPT3006 and OPT3007.
+//! 
 //! The OPT3001 is a sensor that measures the intensity of visible light.
 //! The spectral response of the sensor tightly matches the photopic
 //! response of the human eye and includes significant infrared rejection.
