@@ -223,13 +223,17 @@ where
     I2C: i2c::Write<Error = E>,
 {
     fn set_config(&mut self, config: Config) -> Result<(), Error<E>> {
-        let data = [
-            Register::CONFIG,
-            (config.bits >> 8) as u8,
-            config.bits as u8,
-        ];
-        self.i2c.write(self.address, &data).map_err(Error::I2C)?;
+        self.write_register(Register::CONFIG, config.bits)?;
         self.config = config;
         Ok(())
+    }
+
+    fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<E>> {
+        let data = [
+            register,
+            (value >> 8) as u8,
+            value as u8,
+        ];
+        self.i2c.write(self.address, &data).map_err(Error::I2C)
     }
 }
