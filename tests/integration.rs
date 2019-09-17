@@ -120,18 +120,24 @@ read_raw_test!(raw_83k, 0xBFFF, (0xB, 0xFFF));
 get_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
 get_test!(no_overflow, has_overflown, CONFIG, 0, false);
 
-macro_rules! cfg_test {
-    ($name:ident, $method:ident, $value:expr $(, $arg:expr)*) => {
+macro_rules! set_test {
+    ($name:ident, $method:ident, $register:ident, $value:expr $(, $arg:expr)*) => {
         #[test]
         fn $name() {
             let transactions = [I2cTrans::write(
                 DEV_ADDR,
-                vec![Reg::CONFIG, ($value >> 8) as u8, $value as u8],
+                vec![Reg::$register, ($value >> 8) as u8, $value as u8],
             )];
             let mut sensor = new_opt3001(&transactions);
             sensor.$method($($arg),*).unwrap();
             destroy(sensor);
         }
+    };
+}
+
+macro_rules! cfg_test {
+    ($name:ident, $method:ident, $value:expr $(, $arg:expr)*) => {
+        set_test!($name, $method, CONFIG, $value $(, $arg)*);
     };
 }
 
