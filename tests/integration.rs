@@ -1,7 +1,9 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
 use hal::i2c::Transaction as I2cTrans;
-use opt300x::{ComparisonMode, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange};
+use opt300x::{
+    ComparisonMode, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange, Status,
+};
 
 mod common;
 use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
@@ -117,8 +119,83 @@ read_raw_test!(raw_5242_4, 0xB100, (0xB, 0x100));
 read_raw_test!(raw_20, 0xB001, (0xB, 0x01));
 read_raw_test!(raw_83k, 0xBFFF, (0xB, 0xFFF));
 
-get_test!(overflow, has_overflown, CONFIG, BF::OVF, true);
-get_test!(no_overflow, has_overflown, CONFIG, 0, false);
+get_test!(
+    status_overflow,
+    read_status,
+    CONFIG,
+    BF::OVF,
+    Status {
+        has_overflown: true,
+        conversion_ready: false,
+        was_too_high: false,
+        was_too_low: false,
+    }
+);
+
+get_test!(
+    status_all_false,
+    read_status,
+    CONFIG,
+    0,
+    Status {
+        has_overflown: false,
+        conversion_ready: false,
+        was_too_high: false,
+        was_too_low: false,
+    }
+);
+
+get_test!(
+    status_conversion_ready,
+    read_status,
+    CONFIG,
+    BF::CRF,
+    Status {
+        has_overflown: false,
+        conversion_ready: true,
+        was_too_high: false,
+        was_too_low: false,
+    }
+);
+
+get_test!(
+    status_too_high,
+    read_status,
+    CONFIG,
+    BF::FH,
+    Status {
+        has_overflown: false,
+        conversion_ready: false,
+        was_too_high: true,
+        was_too_low: false,
+    }
+);
+
+get_test!(
+    status_too_low,
+    read_status,
+    CONFIG,
+    BF::FL,
+    Status {
+        has_overflown: false,
+        conversion_ready: false,
+        was_too_high: false,
+        was_too_low: true,
+    }
+);
+
+get_test!(
+    status_all_true,
+    read_status,
+    CONFIG,
+    BF::OVF | BF::CRF | BF::FH | BF::FL,
+    Status {
+        has_overflown: true,
+        conversion_ready: true,
+        was_too_high: true,
+        was_too_low: true,
+    }
+);
 
 macro_rules! set_test {
     ($name:ident, $method:ident, $register:ident, $value:expr $(, $arg:expr)*) => {

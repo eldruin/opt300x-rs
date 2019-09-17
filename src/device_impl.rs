@@ -1,7 +1,7 @@
 use crate::hal::blocking::i2c;
 use crate::{
     ic, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity,
-    LuxRange, ModeChangeError, Opt300x, PhantomData, SlaveAddr,
+    LuxRange, ModeChangeError, Opt300x, PhantomData, SlaveAddr, Status,
 };
 
 struct Register;
@@ -20,6 +20,9 @@ impl BitFlags {
     const MODE1: u16 = 1 << 10;
     const MODE0: u16 = 1 << 9;
     const OVF: u16 = 1 << 8;
+    const CRF: u16 = 1 << 7;
+    const FH: u16 = 1 << 6;
+    const FL: u16 = 1 << 5;
     const L: u16 = 1 << 4;
     const POL: u16 = 1 << 3;
     const ME: u16 = 1 << 2;
@@ -124,9 +127,18 @@ impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
-    /// Read whether an overflow condition has occurred
-    pub fn has_overflown(&mut self) -> Result<bool, Error<E>> {
-        Ok((self.read_register(Register::CONFIG)? & BitFlags::OVF) != 0)
+    /// Read the status of the conversion.
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
+    pub fn read_status(&mut self) -> Result<Status, Error<E>> {
+        let config = self.read_register(Register::CONFIG)?;
+        Ok(Status {
+            has_overflown: (config & BitFlags::OVF) != 0,
+            conversion_ready: (config & BitFlags::CRF) != 0,
+            was_too_high: (config & BitFlags::FH) != 0,
+            was_too_low: (config & BitFlags::FL) != 0,
+        })
     }
 
     /// Set the fault count

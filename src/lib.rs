@@ -173,6 +173,19 @@ pub enum ComparisonMode {
     TransparentHysteresis,
 }
 
+/// Conversion status
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Status {
+    /// Whether an overflow condition during the conversion has occurred.
+    pub has_overflown: bool,
+    /// Whether a new conversion is ready.
+    pub conversion_ready: bool,
+    /// Whether the result is higher that the configured high limit.
+    pub was_too_high: bool,
+    /// Whether the result is lower than the configured low limit.
+    pub was_too_low: bool,
+}
+
 mod device_impl;
 mod slave_addr;
 
