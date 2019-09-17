@@ -213,6 +213,18 @@ where
         Ok(())
     }
 
+    /// Set the lux high limit in raw format (exponent, mantissa).
+    ///
+    /// Returns `Error::InvalidInputData` for an exponent value greater than
+    /// 11 or a mantissa value greater than 4095.
+    pub fn set_high_limit_raw(&mut self, exponent: u8, mantissa: u16) -> Result<(), Error<E>> {
+        if exponent > 0b1011 || mantissa > 0xFFF {
+            return Err(Error::InvalidInputData);
+        }
+        let limit = u16::from(exponent) << 12 | mantissa;
+        self.write_register(Register::HIGH_LIMIT, limit)
+    }
+
     /// Enable end-of-conversion mode
     ///
     /// Note that this changes the two highest bits of the lux low limit exponent.
