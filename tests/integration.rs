@@ -76,7 +76,7 @@ read_lux_test!(lux_5242_2, 0x9400, 5242.88);
 read_lux_test!(lux_5242_3, 0xA200, 5242.88);
 read_lux_test!(lux_5242_4, 0xB100, 5242.88);
 read_lux_test!(lux_20, 0xB001, 20.48);
-read_lux_test!(lux_83k, 0xBFFF, 83865.60);
+read_lux_test!(lux_83k, 0xBFFF, 83_865.6);
 
 macro_rules! read_raw_test {
     ($name:ident, $value:expr, $expected:expr) => {
