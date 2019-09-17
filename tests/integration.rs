@@ -278,3 +278,47 @@ set_test!(
     0xB,
     0xFFF
 );
+
+set_test!(
+    enable_end_of_conv,
+    enable_end_of_conversion_mode,
+    LOW_LIMIT,
+    0b11 << 14
+);
+
+set_test!(
+    disable_end_of_conv,
+    disable_end_of_conversion_mode,
+    LOW_LIMIT,
+    0
+);
+
+#[test]
+fn configured_low_limit_is_restored_after_disabling_end_of_conv() {
+    let low_limit = 0b1010_1010_1010_1010;
+    let transactions = [
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![Reg::LOW_LIMIT, (low_limit >> 8) as u8, low_limit as u8],
+        ),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![
+                Reg::LOW_LIMIT,
+                (low_limit >> 8) as u8 | 0b11 << 6,
+                low_limit as u8,
+            ],
+        ),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![Reg::LOW_LIMIT, (low_limit >> 8) as u8, low_limit as u8],
+        ),
+    ];
+    let mut sensor = new_opt3001(&transactions);
+    sensor
+        .set_low_limit_raw((low_limit >> 12) as u8, low_limit & 0xFFF)
+        .unwrap();
+    sensor.enable_end_of_conversion_mode().unwrap();
+    sensor.disable_end_of_conversion_mode().unwrap();
+    destroy(sensor);
+}

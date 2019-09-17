@@ -108,6 +108,7 @@ pub struct Opt300x<I2C, IC, MODE> {
     i2c: I2C,
     address: u8,
     config: Config,
+    low_limit: u16,
     _ic: PhantomData<IC>,
     _mode: PhantomData<MODE>,
 }

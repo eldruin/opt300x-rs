@@ -32,6 +32,7 @@ impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
             i2c,
             address: address.addr(),
             config: Config { bits: 0xC810 },
+            low_limit: 0,
             _ic: PhantomData,
             _mode: PhantomData,
         }
@@ -64,6 +65,7 @@ where
             i2c: self.i2c,
             address: self.address,
             config: self.config,
+            low_limit: self.low_limit,
             _ic: PhantomData,
             _mode: PhantomData,
         })
@@ -91,6 +93,7 @@ where
             i2c: self.i2c,
             address: self.address,
             config: self.config,
+            low_limit: self.low_limit,
             _ic: PhantomData,
             _mode: PhantomData,
         })
@@ -205,8 +208,29 @@ where
             return Err(Error::InvalidInputData);
         }
         let limit = u16::from(exponent) << 12 | mantissa;
+        self.write_register(Register::LOW_LIMIT, limit)?;
+        self.low_limit = limit;
+        Ok(())
+    }
+
+    /// Enable end-of-conversion mode
+    ///
+    /// Note that this changes the two highest bits of the lux low limit exponent.
+    /// Please see the device datasheet for further details.
+    pub fn enable_end_of_conversion_mode(&mut self) -> Result<(), Error<E>> {
+        let limit = self.low_limit | 0b1100 << 12;
         self.write_register(Register::LOW_LIMIT, limit)
     }
+
+    /// Disable end-of-conversion mode
+    ///
+    /// Note that this restores the two highest bits of the lux low limit
+    /// exponent to the last value set before enabling the end-of-conversion
+    /// mode (0b00 by default).
+    pub fn disable_end_of_conversion_mode(&mut self) -> Result<(), Error<E>> {
+        self.write_register(Register::LOW_LIMIT, self.low_limit)
+    }
+
     /// Read the manifacturer ID
     pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::MANUFACTURER_ID)
@@ -242,11 +266,7 @@ where
     }
 
     fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<E>> {
-        let data = [
-            register,
-            (value >> 8) as u8,
-            value as u8,
-        ];
+        let data = [register, (value >> 8) as u8, value as u8];
         self.i2c.write(self.address, &data).map_err(Error::I2C)
     }
 }
