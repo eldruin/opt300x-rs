@@ -270,3 +270,11 @@ macro_rules! invalid_test {
 
 invalid_test!(low_limit_exp_too_big, set_low_limit_raw, 0b1100, 0);
 invalid_test!(low_limit_mant_too_big, set_low_limit_raw, 0, 0x1000);
+set_test!(
+    low_limit,
+    set_low_limit_raw,
+    LOW_LIMIT,
+    0xBFFF_u16,
+    0xB,
+    0xFFF
+);
