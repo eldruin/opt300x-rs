@@ -55,6 +55,9 @@ where
     I2C: i2c::Write<Error = E>,
 {
     /// Change into continuous measurement mode
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn into_continuous(
         mut self,
     ) -> Result<Opt300x<I2C, IC, mode::Continuous>, ModeChangeError<E, Self>> {
@@ -187,6 +190,9 @@ where
     }
 
     /// Set the fault count
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn set_fault_count(&mut self, count: FaultCount) -> Result<(), Error<E>> {
         let config = self.config.bits & !0b11;
         let config = match count {
@@ -202,6 +208,9 @@ where
     ///
     /// `Error::InvalidInputData` will be returned for manual values outside
     /// the valid range.
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn set_lux_range(&mut self, range: LuxRange) -> Result<(), Error<E>> {
         let value = match range {
             LuxRange::Auto => Ok(0b1100),
@@ -215,6 +224,9 @@ where
     }
 
     /// Set the integration (conversion) time.
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn set_integration_time(&mut self, time: IntegrationTime) -> Result<(), Error<E>> {
         let config = match time {
             IntegrationTime::Ms100 => self.config.with_low(BitFlags::CT),
@@ -224,6 +236,9 @@ where
     }
 
     /// Set the interrupt pin polarity
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn set_interrupt_pin_polarity(
         &mut self,
         polarity: InterruptPinPolarity,
@@ -236,16 +251,25 @@ where
     }
 
     /// Enable exponent masking.
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn enable_exponent_masking(&mut self) -> Result<(), Error<E>> {
         self.set_config(self.config.with_high(BitFlags::ME))
     }
 
     /// Disable exponent masking (default).
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn disable_exponent_masking(&mut self) -> Result<(), Error<E>> {
         self.set_config(self.config.with_low(BitFlags::ME))
     }
 
     /// Set result comparison mode for interrupt reporting
+    ///
+    /// Note that the conversion ready flag is cleared automatically
+    /// after calling this method.
     pub fn set_comparison_mode(&mut self, mode: ComparisonMode) -> Result<(), Error<E>> {
         let config = match mode {
             ComparisonMode::LatchedWindow => self.config.with_high(BitFlags::L),

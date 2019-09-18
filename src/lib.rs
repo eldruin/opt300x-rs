@@ -2,7 +2,7 @@
 //! sensors using the [`embedded-hal`] traits.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
-//! 
+//!
 //! This driver allows you to:
 //! - Read the measurement in lux or raw. See: [`read_lux()`].
 //! - Change into continuous measurement mode. See: [`into_continuous()`].
@@ -14,7 +14,7 @@
 //! - Enable and disable end-of-conversion mode. See: [`enable_end_of_conversion_mode()`].
 //! - Get the manufacturer ID. See: [`get_manufacturer_id()`].
 //! - Get the device ID. See: [`get_device_id()`].
-//! 
+//!
 //! [`read_lux()`]: struct.Opt300x.html#method.read_lux
 //! [`into_continuous()`]: struct.Opt300x.html#method.into_continuous
 //! [`read_status()`]: struct.Opt300x.html#method.read_status
@@ -25,12 +25,12 @@
 //! [`enable_end_of_conversion_mode()`]: struct.Opt300x.html#method.enable_end_of_conversion_mode
 //! [`get_manufacturer_id()`]: struct.Opt300x.html#method.get_manufacturer_id
 //! [`get_device_id()`]: struct.Opt300x.html#method.get_device_id
-//! 
+//!
 //! ## The devices
 //!
 //! This driver is compatible with the devices OPT3001, OPT3002, OPT3004,
 //! OPT3006 and OPT3007.
-//! 
+//!
 //! The OPT3001 is a sensor that measures the intensity of visible light.
 //! The spectral response of the sensor tightly matches the photopic
 //! response of the human eye and includes significant infrared rejection.
