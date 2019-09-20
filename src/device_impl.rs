@@ -194,7 +194,12 @@ where
             was_too_low: (config & BitFlags::FL) != 0,
         })
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::Write<Error = E>,
+{
     /// Set the fault count
     ///
     /// Note that the conversion ready flag is cleared automatically
@@ -329,7 +334,12 @@ where
     pub fn disable_end_of_conversion_mode(&mut self) -> Result<(), Error<E>> {
         self.write_register(Register::LOW_LIMIT, self.low_limit)
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::WriteRead<Error = E>,
+{
     /// Read the manifacturer ID
     pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::MANUFACTURER_ID)
