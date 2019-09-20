@@ -36,13 +36,39 @@ impl Default for Config {
 }
 
 impl marker::WithDeviceId for ic::Opt3001 {}
+impl marker::WithDeviceId for ic::Opt3004 {}
+impl marker::WithDeviceId for ic::Opt3006 {}
+impl marker::WithDeviceId for ic::Opt3007 {}
 
-impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
-    /// Create new instance of the OPT3001 device.
-    pub fn new_opt3001(i2c: I2C, address: SlaveAddr) -> Self {
+macro_rules! create {
+    ($ic:ident, $method:ident) => {
+        impl<I2C> Opt300x<I2C, ic::$ic, mode::OneShot> {
+            /// Create new instance of the device
+            pub fn $method(i2c: I2C, address: SlaveAddr) -> Self {
+                Opt300x {
+                    i2c,
+                    address: address.addr(),
+                    config: Config::default(),
+                    low_limit: 0,
+                    was_conversion_started: false,
+                    _ic: PhantomData,
+                    _mode: PhantomData,
+                }
+            }
+        }
+    };
+}
+create!(Opt3001, new_opt3001);
+create!(Opt3002, new_opt3002);
+create!(Opt3004, new_opt3004);
+create!(Opt3006, new_opt3006);
+
+impl<I2C> Opt300x<I2C, ic::Opt3007, mode::OneShot> {
+    /// Create new instance of the OPT3007 device, which has a fixed I2C address.
+    pub fn new_opt3007(i2c: I2C) -> Self {
         Opt300x {
             i2c,
-            address: address.addr(),
+            address: 0b100_0101,
             config: Config::default(),
             low_limit: 0,
             was_conversion_started: false,

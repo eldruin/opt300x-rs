@@ -1,16 +1,31 @@
 extern crate embedded_hal_mock as hal;
 extern crate opt300x;
-use hal::i2c::Transaction as I2cTrans;
+use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
 use opt300x::{
-    ComparisonMode, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange, Status,
+    ComparisonMode, Error, FaultCount, IntegrationTime, InterruptPinPolarity, LuxRange, Opt300x,
+    SlaveAddr, Status,
 };
 
 mod common;
 use self::common::{destroy, new_opt3001, BitFlags as BF, Register as Reg, CFG_DEFAULT, DEV_ADDR};
 
+macro_rules! create_destroy_test {
+    ($name:ident, $method:ident) => {
+        #[test]
+        fn $name() {
+            let sensor = Opt300x::$method(I2cMock::new(&[]), SlaveAddr::default());
+            destroy(sensor);
+        }
+    };
+}
+create_destroy_test!(create_and_destroy_opt3001, new_opt3001);
+create_destroy_test!(create_and_destroy_opt3002, new_opt3002);
+create_destroy_test!(create_and_destroy_opt3004, new_opt3004);
+create_destroy_test!(create_and_destroy_opt3006, new_opt3006);
+
 #[test]
-fn can_create_and_destroy() {
-    let sensor = new_opt3001(&[]);
+fn create_and_destroy_opt3007() {
+    let sensor = Opt300x::new_opt3007(I2cMock::new(&[]));
     destroy(sensor);
 }
 

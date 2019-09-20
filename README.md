@@ -64,15 +64,6 @@ Please find additional examples using hardware in this repository: [driver-examp
 ```
 -->
 
-## Status
-
-Compatible with:
-- [ ] OPT3001
-- [ ] OPT3002
-- [ ] OPT3004
-- [ ] OPT3006
-- [ ] OPT3007
-
 ## Support
 
 For questions, issues, feature requests, and other changes, please file an

@@ -121,6 +121,14 @@ impl Config {
 pub mod ic {
     /// Used for OPT3001 devices
     pub struct Opt3001(());
+    /// Used for OPT3002 devices
+    pub struct Opt3002(());
+    /// Used for OPT3004 devices
+    pub struct Opt3004(());
+    /// Used for OPT3006 devices
+    pub struct Opt3006(());
+    /// Used for OPT3007 devices
+    pub struct Opt3007(());
 }
 
 /// markers
@@ -240,6 +248,10 @@ mod private {
     pub trait Sealed {}
 
     impl Sealed for ic::Opt3001 {}
+    impl Sealed for ic::Opt3002 {}
+    impl Sealed for ic::Opt3004 {}
+    impl Sealed for ic::Opt3006 {}
+    impl Sealed for ic::Opt3007 {}
     impl Sealed for mode::OneShot {}
     impl Sealed for mode::Continuous {}
 }
