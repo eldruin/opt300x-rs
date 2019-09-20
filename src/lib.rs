@@ -123,6 +123,13 @@ pub mod ic {
     pub struct Opt3001(());
 }
 
+/// markers
+#[doc(hidden)]
+pub mod marker {
+    use super::private;
+    pub trait WithDeviceId: private::Sealed {}
+}
+
 /// Mode marker
 pub mod mode {
     /// One shot mode

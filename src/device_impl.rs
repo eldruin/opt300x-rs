@@ -1,7 +1,8 @@
 use crate::hal::blocking::i2c;
 use crate::{
-    ic, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime, InterruptPinPolarity,
-    LuxRange, Measurement, ModeChangeError, Opt300x, PhantomData, SlaveAddr, Status,
+    ic, marker, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime,
+    InterruptPinPolarity, LuxRange, Measurement, ModeChangeError, Opt300x, PhantomData, SlaveAddr,
+    Status,
 };
 
 struct Register;
@@ -33,6 +34,8 @@ impl Default for Config {
         Config { bits: 0xC810 }
     }
 }
+
+impl marker::WithDeviceId for ic::Opt3001 {}
 
 impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
     /// Create new instance of the OPT3001 device.
@@ -344,7 +347,13 @@ where
     pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::MANUFACTURER_ID)
     }
+}
 
+impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+where
+    I2C: i2c::WriteRead<Error = E>,
+    IC: marker::WithDeviceId,
+{
     /// Read the device ID
     pub fn get_device_id(&mut self) -> Result<u16, Error<E>> {
         self.read_register(Register::DEVICE_ID)
