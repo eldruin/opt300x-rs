@@ -28,13 +28,19 @@ impl BitFlags {
     const ME: u16 = 1 << 2;
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Config { bits: 0xC810 }
+    }
+}
+
 impl<I2C> Opt300x<I2C, ic::Opt3001, mode::OneShot> {
     /// Create new instance of the OPT3001 device.
     pub fn new_opt3001(i2c: I2C, address: SlaveAddr) -> Self {
         Opt300x {
             i2c,
             address: address.addr(),
-            config: Config { bits: 0xC810 },
+            config: Config::default(),
             low_limit: 0,
             was_conversion_started: false,
             _ic: PhantomData,

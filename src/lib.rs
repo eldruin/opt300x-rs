@@ -98,7 +98,7 @@ pub enum ModeChangeError<E, DEV> {
     I2C(E, DEV),
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct Config {
     bits: u16,
 }
