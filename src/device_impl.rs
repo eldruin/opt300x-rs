@@ -179,7 +179,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    I2C: i2c::WriteRead<Error = E>,
 {
     /// Read the status of the conversion.
     ///
@@ -351,6 +351,25 @@ where
     }
 }
 
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
+    /// Reset the internal state of this driver to the default values.
+    ///
+    /// *Note:* This does not alter the state or configuration of the device.
+    ///
+    /// This resets the cached configuration register value in this driver to
+    /// the power-up (reset) configuration of the device.
+    ///
+    /// This needs to be called after performing a reset on the device, for
+    /// example through an I2C general-call Reset command, which was not done
+    /// through this driver to ensure that the configurations in the device
+    /// and in the driver match.
+    pub fn reset_internal_driver_state(&mut self) {
+        self.config = Config::default();
+        self.low_limit = 0;
+        self.was_conversion_started = false;
+    }
+}
+
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
     I2C: i2c::WriteRead<Error = E>,
@@ -377,5 +396,30 @@ where
     fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<E>> {
         let data = [register, (value >> 8) as u8, value as u8];
         self.i2c.write(self.address, &data).map_err(Error::I2C)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct I2cMock;
+    impl i2c::Write for I2cMock {
+        type Error = ();
+        fn write(&mut self, _addr: u8, _bytes: &[u8]) -> Result<(), Self::Error> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn can_reset_driver_state() {
+        let mut device = Opt300x::new_opt3001(I2cMock {}, SlaveAddr::default());
+        device.set_fault_count(FaultCount::Eight).unwrap();
+        device.set_low_limit_raw(1, 2).unwrap();
+        assert_ne!(device.config, Config::default());
+        assert_ne!(device.low_limit, 0);
+        device.reset_internal_driver_state();
+        assert_eq!(device.config, Config::default());
+        assert_eq!(device.low_limit, 0);
     }
 }
