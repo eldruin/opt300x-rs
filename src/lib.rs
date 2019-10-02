@@ -360,7 +360,7 @@ pub enum ComparisonMode {
 }
 
 /// Conversion status
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Status {
     /// Whether an overflow condition during the conversion has occurred.
     pub has_overflown: bool,
