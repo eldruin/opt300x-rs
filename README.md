@@ -1,9 +1,7 @@
 # Rust OPT300x Ambient Light Sensor (ALS) Driver
 
-<!--TODO
 [![crates.io](https://img.shields.io/crates/v/opt300x.svg)](https://crates.io/crates/opt300x)
 [![Docs](https://docs.rs/opt300x/badge.svg)](https://docs.rs/opt300x)
--->
 [![Build Status](https://travis-ci.org/eldruin/opt300x-rs.svg?branch=master)](https://travis-ci.org/eldruin/opt300x-rs)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/opt300x-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/opt300x-rs?branch=master)
 
