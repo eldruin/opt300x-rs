@@ -26,6 +26,8 @@
 //! [`get_manufacturer_id()`]: struct.Opt300x.html#method.get_manufacturer_id
 //! [`get_device_id()`]: struct.Opt300x.html#method.get_device_id
 //!
+//! [Introductory blog post](https://blog.eldruin.com/opt300x-ambient-light-sensor-driver-in-rust/)
+//! 
 //! ## The devices
 //!
 //! This driver is compatible with the devices OPT3001, OPT3002, OPT3004,

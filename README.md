@@ -20,9 +20,7 @@ This driver allows you to:
 - Get the manufacturer ID. See: `get_manufacturer_id()`.
 - Get the device ID. See: `get_device_id()`.
 
-<!--TODO
-[Introductory blog post](https://blog.eldruin.com/...)
--->
+[Introductory blog post](https://blog.eldruin.com/opt300x-ambient-light-sensor-driver-in-rust/)
 
 ## The devices
 
