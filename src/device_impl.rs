@@ -87,7 +87,7 @@ impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
 
 impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::Write<i2c::SevenBitAddress, Error = E>,
 {
     /// Change into continuous measurement mode
     ///
@@ -117,7 +117,7 @@ where
 
 impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::Write<i2c::SevenBitAddress, Error = E>,
 {
     /// Change into one-shot mode
     ///
@@ -146,7 +146,7 @@ where
 
 impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>,
 {
     /// Read the result of the most recent light to digital conversion in lux
     pub fn read_lux(&mut self) -> Result<f32, Error<E>> {
@@ -168,7 +168,8 @@ fn raw_to_lux(result: (u8, u16)) -> f32 {
 
 impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
 where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>
+        + i2c::Write<i2c::SevenBitAddress, Error = E>,
 {
     /// Read the result of the most recent light to digital conversion in lux
     pub fn read_lux(&mut self) -> nb::Result<Measurement<f32>, Error<E>> {
@@ -208,7 +209,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>,
 {
     /// Read the status of the conversion.
     ///
@@ -227,7 +228,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::Write<i2c::SevenBitAddress, Error = E>,
 {
     /// Set the fault count
     ///
@@ -367,7 +368,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>,
 {
     /// Read the manifacturer ID
     pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
@@ -377,7 +378,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>,
     IC: marker::WithDeviceId,
 {
     /// Read the device ID
@@ -407,12 +408,12 @@ impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::WriteRead<i2c::SevenBitAddress, Error = E>,
 {
     fn read_register(&mut self, register: u8) -> Result<u16, Error<E>> {
         let mut data = [0, 0];
         self.i2c
-            .write_read(self.address, &[register], &mut data)
+            .try_write_read(self.address, &[register], &mut data)
             .map_err(Error::I2C)
             .and(Ok(u16::from(data[0]) << 8 | u16::from(data[1])))
     }
@@ -420,7 +421,7 @@ where
 
 impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::Write<i2c::SevenBitAddress, Error = E>,
 {
     fn set_config(&mut self, config: Config) -> Result<(), Error<E>> {
         self.write_register(Register::CONFIG, config.bits)?;
@@ -430,7 +431,7 @@ where
 
     fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<E>> {
         let data = [register, (value >> 8) as u8, value as u8];
-        self.i2c.write(self.address, &data).map_err(Error::I2C)
+        self.i2c.try_write(self.address, &data).map_err(Error::I2C)
     }
 }
 
@@ -439,9 +440,9 @@ mod tests {
     use super::*;
 
     struct I2cMock;
-    impl i2c::Write for I2cMock {
+    impl i2c::Write<i2c::SevenBitAddress> for I2cMock {
         type Error = ();
-        fn write(&mut self, _addr: u8, _bytes: &[u8]) -> Result<(), Self::Error> {
+        fn try_write(&mut self, _addr: u8, _bytes: &[u8]) -> Result<(), Self::Error> {
             Ok(())
         }
     }

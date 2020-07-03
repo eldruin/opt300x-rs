@@ -25,7 +25,7 @@ travis-ci = { repository = "eldruin/opt300x-rs", branch = "master" }
 coveralls = { repository = "eldruin/opt300x-rs", branch = "master", service = "github" }
 
 [dependencies]
-embedded-hal = "0.2"
+embedded-hal = "=1.0.0-alpha.1"
 nb = "0.1"
 
 [dev-dependencies]
@@ -34,3 +34,6 @@ embedded-hal-mock = "0.4"
 
 [profile.release]
 lto = true
+
+[patch.crates-io]
+embedded-hal = { git = "https://github.com/eldruin/embedded-hal", branch = "i2c-multi-address-mode" }
