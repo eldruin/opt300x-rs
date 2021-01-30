@@ -32,7 +32,7 @@ impl BitFlags {
 
 #[allow(unused)]
 pub fn new_opt3001(transactions: &[I2cTrans]) -> Opt300x<I2cMock, ic::Opt3001, mode::OneShot> {
-    Opt300x::new_opt3001(I2cMock::new(&transactions), SlaveAddr::default())
+    Opt300x::new_opt3001(I2cMock::new(transactions), SlaveAddr::default())
 }
 
 pub fn destroy<IC, MODE>(sensor: Opt300x<I2cMock, IC, MODE>) {
