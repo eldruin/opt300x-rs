@@ -1,9 +1,9 @@
-use crate::hal::blocking::i2c;
 use crate::{
     ic, marker, mode, ComparisonMode, Config, Error, FaultCount, IntegrationTime,
     InterruptPinPolarity, LuxRange, Measurement, ModeChangeError, Opt300x, PhantomData, SlaveAddr,
     Status,
 };
+use embedded_hal::blocking::i2c;
 
 struct Register;
 impl Register {

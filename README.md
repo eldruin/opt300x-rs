@@ -60,12 +60,11 @@ Please find additional examples using hardware in this repository: [driver-examp
 [driver-examples]: https://github.com/eldruin/driver-examples
 
 ```rust
-extern crate linux_embedded_hal as hal;
-extern crate opt300x;
+use linux_embedded_hal::I2cdev;
 use opt300x::{Opt300x, SlaveAddr};
 
 fn main() {
-    let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+    let dev = I2cdev::new("/dev/i2c-1").unwrap();
     let address = SlaveAddr::default();
     let sensor = Opt300x::new_opt3001(dev, address);
     let mut sensor = sensor.into_continuous().ok().unwrap();

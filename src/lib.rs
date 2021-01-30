@@ -27,7 +27,7 @@
 //! [`get_device_id()`]: struct.Opt300x.html#method.get_device_id
 //!
 //! [Introductory blog post](https://blog.eldruin.com/opt300x-ambient-light-sensor-driver-in-rust/)
-//! 
+//!
 //! ## The devices
 //!
 //! This driver is compatible with the devices OPT3001, OPT3002, OPT3004,
@@ -85,60 +85,48 @@
 //! ### Create a driver instance for the OPT3001
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let sensor = Opt300x::new_opt3001(dev, address);
-//! # }
 //! ```
 //!
 //! ### Provide an alternative address
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::Alternative(true, false);
 //! let mut sensor = Opt300x::new_opt3001(dev, address);
-//! # }
 //! ```
 //!
 //! ### Read lux in one-shot measurements
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! #[macro_use]
-//! extern crate nb;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
+//! use nb;
 //! use opt300x::{Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let mut sensor = Opt300x::new_opt3001(dev, address);
 //! loop {
-//!     let m = block!(sensor.read_lux()).unwrap();
+//!     let m = nb::block!(sensor.read_lux()).unwrap();
 //!     println!("lux: {:2}", m.result);
 //! }
-//! # }
 //! ```
 //!
 //! ### Change into continuous mode and read lux
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let sensor = Opt300x::new_opt3001(dev, address);
 //! let mut sensor = sensor.into_continuous().ok().unwrap();
@@ -146,39 +134,31 @@
 //!     let lux = sensor.read_lux().unwrap();
 //!     println!("lux: {:2}", lux);
 //! }
-//! # }
 //! ```
 //!
 //! ### Set the integration time and manual lux range
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{IntegrationTime, LuxRange, Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let mut sensor = Opt300x::new_opt3001(dev, address);
 //! sensor.set_integration_time(IntegrationTime::Ms800).unwrap();
 //! sensor.set_lux_range(LuxRange::Manual(2)).unwrap();
 //! sensor.enable_exponent_masking().unwrap();
-//! # }
 //! ```
 //!
 //! ### Configure interrupts
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! #[macro_use]
-//! extern crate nb;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{
 //!     ComparisonMode, FaultCount, InterruptPinPolarity, Opt300x, SlaveAddr
 //! };
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let mut sensor = Opt300x::new_opt3001(dev, address);
 //! sensor.set_comparison_mode(ComparisonMode::LatchedWindow).unwrap();
@@ -190,20 +170,15 @@
 //!     let status = sensor.read_status().unwrap();
 //!     println!("status {:?}", status);
 //! }
-//! # }
 //! ```
 //!
 //! ### Enable end of conversion mode
 //!
 //! ```no_run
-//! extern crate linux_embedded_hal as hal;
-//! #[macro_use]
-//! extern crate nb;
-//! extern crate opt300x;
+//! use linux_embedded_hal::I2cdev;
 //! use opt300x::{Opt300x, SlaveAddr};
 //!
-//! # fn main() {
-//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let address = SlaveAddr::default();
 //! let mut sensor = Opt300x::new_opt3001(dev, address);
 //! sensor.enable_end_of_conversion_mode().unwrap();
@@ -211,15 +186,12 @@
 //!     let status = sensor.read_status().unwrap();
 //!     println!("status {:?}", status);
 //! }
-//! # }
 //! ```
 
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
 use core::marker::PhantomData;
-extern crate embedded_hal as hal;
-extern crate nb;
 
 /// Errors in this crate
 #[derive(Debug)]
