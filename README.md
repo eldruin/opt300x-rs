@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/opt300x.svg)](https://crates.io/crates/opt300x)
 [![Docs](https://docs.rs/opt300x/badge.svg)](https://docs.rs/opt300x)
-[![Build Status](https://travis-ci.org/eldruin/opt300x-rs.svg?branch=master)](https://travis-ci.org/eldruin/opt300x-rs)
+[![Build Status](https://github.com/eldruin/opt300x-rs/workflows/Build/badge.svg)](https://github.com/eldruin/opt300x-rs/actions?query=workflow%3ABuild)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/opt300x-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/opt300x-rs?branch=master)
 
 This is a platform agnostic Rust driver for the OPT300x ambient light sensor
