@@ -286,7 +286,7 @@ pub enum SlaveAddr {
 /// Fault count
 ///
 /// Number of consecutive fault events necessary to trigger interrupt.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FaultCount {
     /// One (default)
     One,
@@ -299,7 +299,7 @@ pub enum FaultCount {
 }
 
 /// Interrupt pin polarity (active state)
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InterruptPinPolarity {
     /// Active low (default)
     Low,
@@ -308,7 +308,7 @@ pub enum InterruptPinPolarity {
 }
 
 /// Lux range
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LuxRange {
     /// Manual [0-11]
     Manual(u8),
@@ -317,7 +317,7 @@ pub enum LuxRange {
 }
 
 /// Integration time
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntegrationTime {
     /// 100 ms
     Ms100,
@@ -326,7 +326,7 @@ pub enum IntegrationTime {
 }
 
 /// Result comparison mode for interrupt reporting
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ComparisonMode {
     /// Latched window-style
     LatchedWindow,
@@ -335,7 +335,7 @@ pub enum ComparisonMode {
 }
 
 /// Conversion status
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Status {
     /// Whether an overflow condition during the conversion has occurred.
     pub has_overflown: bool,
@@ -348,7 +348,7 @@ pub struct Status {
 }
 
 /// One-shot measurement
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Measurement<T> {
     /// Result
     pub result: T,
