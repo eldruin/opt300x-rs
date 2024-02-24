@@ -1,4 +1,4 @@
-use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
+use hal::eh1::i2c::{Mock as I2cMock, Transaction as I2cTrans};
 use opt300x::{ic, mode, Opt300x, SlaveAddr};
 
 pub const DEV_ADDR: u8 = 0b100_0100;

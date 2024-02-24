@@ -2,7 +2,7 @@ extern crate embedded_hal_mock as hal;
 #[macro_use]
 extern crate nb;
 extern crate opt300x;
-use hal::i2c::Transaction as I2cTrans;
+use hal::eh1::i2c::Transaction as I2cTrans;
 use opt300x::Status;
 
 mod common;

@@ -3,7 +3,7 @@ use crate::{
     InterruptPinPolarity, LuxRange, Measurement, ModeChangeError, Opt300x, PhantomData, SlaveAddr,
     Status,
 };
-use embedded_hal::blocking::i2c;
+use embedded_hal::i2c;
 
 struct Register;
 impl Register {
@@ -85,9 +85,9 @@ impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
     }
 }
 
-impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
+impl<I2C, IC> Opt300x<I2C, IC, mode::OneShot>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Change into continuous measurement mode
     ///
@@ -95,7 +95,7 @@ where
     /// after calling this method.
     pub fn into_continuous(
         mut self,
-    ) -> Result<Opt300x<I2C, IC, mode::Continuous>, ModeChangeError<E, Self>> {
+    ) -> Result<Opt300x<I2C, IC, mode::Continuous>, ModeChangeError<I2C::Error, Self>> {
         if let Err(Error::I2C(e)) = self.set_config(
             self.config
                 .with_high(BitFlags::MODE0)
@@ -115,16 +115,16 @@ where
     }
 }
 
-impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
+impl<I2C, IC> Opt300x<I2C, IC, mode::Continuous>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Change into one-shot mode
     ///
     /// This will actually shut down the device until a measurement is requested.
     pub fn into_one_shot(
         mut self,
-    ) -> Result<Opt300x<I2C, IC, mode::OneShot>, ModeChangeError<E, Self>> {
+    ) -> Result<Opt300x<I2C, IC, mode::OneShot>, ModeChangeError<I2C::Error, Self>> {
         if let Err(Error::I2C(e)) = self.set_config(
             self.config
                 .with_low(BitFlags::MODE0)
@@ -144,19 +144,19 @@ where
     }
 }
 
-impl<I2C, E, IC> Opt300x<I2C, IC, mode::Continuous>
+impl<I2C, IC> Opt300x<I2C, IC, mode::Continuous>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Read the result of the most recent light to digital conversion in lux
-    pub fn read_lux(&mut self) -> Result<f32, Error<E>> {
+    pub fn read_lux(&mut self) -> Result<f32, Error<I2C::Error>> {
         let result = self.read_raw()?;
         Ok(raw_to_lux(result))
     }
 
     /// Read the result of the most recent light to digital conversion in
     /// raw format: (exponent, mantissa)
-    pub fn read_raw(&mut self) -> Result<(u8, u16), Error<E>> {
+    pub fn read_raw(&mut self) -> Result<(u8, u16), Error<I2C::Error>> {
         let result = self.read_register(Register::RESULT)?;
         Ok(((result >> 12) as u8, result & 0xFFF))
     }
@@ -166,12 +166,12 @@ fn raw_to_lux(result: (u8, u16)) -> f32 {
     (f64::from(1 << result.0) * 0.01 * f64::from(result.1)) as f32
 }
 
-impl<I2C, E, IC> Opt300x<I2C, IC, mode::OneShot>
+impl<I2C, IC> Opt300x<I2C, IC, mode::OneShot>
 where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Read the result of the most recent light to digital conversion in lux
-    pub fn read_lux(&mut self) -> nb::Result<Measurement<f32>, Error<E>> {
+    pub fn read_lux(&mut self) -> nb::Result<Measurement<f32>, Error<I2C::Error>> {
         let measurement = self.read_raw()?;
         Ok(Measurement {
             result: raw_to_lux(measurement.result),
@@ -181,7 +181,7 @@ where
 
     /// Read the result of the most recent light to digital conversion in
     /// raw format: (exponent, mantissa)
-    pub fn read_raw(&mut self) -> nb::Result<Measurement<(u8, u16)>, Error<E>> {
+    pub fn read_raw(&mut self) -> nb::Result<Measurement<(u8, u16)>, Error<I2C::Error>> {
         if self.was_conversion_started {
             let status = self.read_status().map_err(nb::Error::Other)?;
             if status.conversion_ready {
@@ -206,15 +206,15 @@ where
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Read the status of the conversion.
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn read_status(&mut self) -> Result<Status, Error<E>> {
+    pub fn read_status(&mut self) -> Result<Status, Error<I2C::Error>> {
         let config = self.read_register(Register::CONFIG)?;
         Ok(Status {
             has_overflown: (config & BitFlags::OVF) != 0,
@@ -225,15 +225,15 @@ where
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Set the fault count
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn set_fault_count(&mut self, count: FaultCount) -> Result<(), Error<E>> {
+    pub fn set_fault_count(&mut self, count: FaultCount) -> Result<(), Error<I2C::Error>> {
         let config = self.config.bits & !0b11;
         let config = match count {
             FaultCount::One => config,
@@ -251,7 +251,7 @@ where
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn set_lux_range(&mut self, range: LuxRange) -> Result<(), Error<E>> {
+    pub fn set_lux_range(&mut self, range: LuxRange) -> Result<(), Error<I2C::Error>> {
         let value = match range {
             LuxRange::Auto => Ok(0b1100),
             LuxRange::Manual(rn) if rn >= 0b1100 => Err(Error::InvalidInputData),
@@ -267,7 +267,7 @@ where
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn set_integration_time(&mut self, time: IntegrationTime) -> Result<(), Error<E>> {
+    pub fn set_integration_time(&mut self, time: IntegrationTime) -> Result<(), Error<I2C::Error>> {
         let config = match time {
             IntegrationTime::Ms100 => self.config.with_low(BitFlags::CT),
             IntegrationTime::Ms800 => self.config.with_high(BitFlags::CT),
@@ -282,7 +282,7 @@ where
     pub fn set_interrupt_pin_polarity(
         &mut self,
         polarity: InterruptPinPolarity,
-    ) -> Result<(), Error<E>> {
+    ) -> Result<(), Error<I2C::Error>> {
         let config = match polarity {
             InterruptPinPolarity::Low => self.config.with_low(BitFlags::POL),
             InterruptPinPolarity::High => self.config.with_high(BitFlags::POL),
@@ -294,7 +294,7 @@ where
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn enable_exponent_masking(&mut self) -> Result<(), Error<E>> {
+    pub fn enable_exponent_masking(&mut self) -> Result<(), Error<I2C::Error>> {
         self.set_config(self.config.with_high(BitFlags::ME))
     }
 
@@ -302,7 +302,7 @@ where
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn disable_exponent_masking(&mut self) -> Result<(), Error<E>> {
+    pub fn disable_exponent_masking(&mut self) -> Result<(), Error<I2C::Error>> {
         self.set_config(self.config.with_low(BitFlags::ME))
     }
 
@@ -310,7 +310,7 @@ where
     ///
     /// Note that the conversion ready flag is cleared automatically
     /// after calling this method.
-    pub fn set_comparison_mode(&mut self, mode: ComparisonMode) -> Result<(), Error<E>> {
+    pub fn set_comparison_mode(&mut self, mode: ComparisonMode) -> Result<(), Error<I2C::Error>> {
         let config = match mode {
             ComparisonMode::LatchedWindow => self.config.with_high(BitFlags::L),
             ComparisonMode::TransparentHysteresis => self.config.with_low(BitFlags::L),
@@ -324,7 +324,11 @@ where
     /// 11 or a mantissa value greater than 4095.
     ///
     /// Note that this disables the end-of-conversion mode.
-    pub fn set_low_limit_raw(&mut self, exponent: u8, mantissa: u16) -> Result<(), Error<E>> {
+    pub fn set_low_limit_raw(
+        &mut self,
+        exponent: u8,
+        mantissa: u16,
+    ) -> Result<(), Error<I2C::Error>> {
         if exponent > 0b1011 || mantissa > 0xFFF {
             return Err(Error::InvalidInputData);
         }
@@ -338,7 +342,11 @@ where
     ///
     /// Returns `Error::InvalidInputData` for an exponent value greater than
     /// 11 or a mantissa value greater than 4095.
-    pub fn set_high_limit_raw(&mut self, exponent: u8, mantissa: u16) -> Result<(), Error<E>> {
+    pub fn set_high_limit_raw(
+        &mut self,
+        exponent: u8,
+        mantissa: u16,
+    ) -> Result<(), Error<I2C::Error>> {
         if exponent > 0b1011 || mantissa > 0xFFF {
             return Err(Error::InvalidInputData);
         }
@@ -350,7 +358,7 @@ where
     ///
     /// Note that this changes the two highest bits of the lux low limit exponent.
     /// Please see the device datasheet for further details.
-    pub fn enable_end_of_conversion_mode(&mut self) -> Result<(), Error<E>> {
+    pub fn enable_end_of_conversion_mode(&mut self) -> Result<(), Error<I2C::Error>> {
         let limit = self.low_limit | 0b1100 << 12;
         self.write_register(Register::LOW_LIMIT, limit)
     }
@@ -360,28 +368,28 @@ where
     /// Note that this restores the two highest bits of the lux low limit
     /// exponent to the last value set before enabling the end-of-conversion
     /// mode (0b00 by default).
-    pub fn disable_end_of_conversion_mode(&mut self) -> Result<(), Error<E>> {
+    pub fn disable_end_of_conversion_mode(&mut self) -> Result<(), Error<I2C::Error>> {
         self.write_register(Register::LOW_LIMIT, self.low_limit)
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c,
 {
     /// Read the manifacturer ID
-    pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<E>> {
+    pub fn get_manufacturer_id(&mut self) -> Result<u16, Error<I2C::Error>> {
         self.read_register(Register::MANUFACTURER_ID)
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c,
     IC: marker::WithDeviceId,
 {
     /// Read the device ID
-    pub fn get_device_id(&mut self) -> Result<u16, Error<E>> {
+    pub fn get_device_id(&mut self) -> Result<u16, Error<I2C::Error>> {
         self.read_register(Register::DEVICE_ID)
     }
 }
@@ -405,11 +413,11 @@ impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE> {
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c,
 {
-    fn read_register(&mut self, register: u8) -> Result<u16, Error<E>> {
+    fn read_register(&mut self, register: u8) -> Result<u16, Error<I2C::Error>> {
         let mut data = [0, 0];
         self.i2c
             .write_read(self.address, &[register], &mut data)
@@ -418,17 +426,17 @@ where
     }
 }
 
-impl<I2C, E, IC, MODE> Opt300x<I2C, IC, MODE>
+impl<I2C, IC, MODE> Opt300x<I2C, IC, MODE>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::I2c,
 {
-    fn set_config(&mut self, config: Config) -> Result<(), Error<E>> {
+    fn set_config(&mut self, config: Config) -> Result<(), Error<I2C::Error>> {
         self.write_register(Register::CONFIG, config.bits)?;
         self.config = config;
         Ok(())
     }
 
-    fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<E>> {
+    fn write_register(&mut self, register: u8, value: u16) -> Result<(), Error<I2C::Error>> {
         let data = [register, (value >> 8) as u8, value as u8];
         self.i2c.write(self.address, &data).map_err(Error::I2C)
     }
@@ -436,12 +444,21 @@ where
 
 #[cfg(test)]
 mod tests {
+    use core::convert::Infallible;
+
     use super::*;
 
+    impl embedded_hal::i2c::ErrorType for I2cMock {
+        type Error = Infallible;
+    }
+
     struct I2cMock;
-    impl i2c::Write for I2cMock {
-        type Error = ();
-        fn write(&mut self, _addr: u8, _bytes: &[u8]) -> Result<(), Self::Error> {
+    impl i2c::I2c for I2cMock {
+        fn transaction(
+            &mut self,
+            _address: u8,
+            _operations: &mut [i2c::Operation<'_>],
+        ) -> Result<(), Self::Error> {
             Ok(())
         }
     }
