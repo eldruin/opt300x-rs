@@ -26,7 +26,7 @@ nb = "1"
 
 [dev-dependencies]
 linux-embedded-hal = "0.4.0"
-embedded-hal-mock = "0.10.0"
+embedded-hal-mock = {version="0.10.0", default-features=false, features=["eh1"]}
 
 [profile.release]
 lto = true
