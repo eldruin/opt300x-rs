@@ -188,7 +188,6 @@
 //! }
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/opt300x/0.1.1")]
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
