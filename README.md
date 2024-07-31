@@ -2,6 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/opt300x.svg)](https://crates.io/crates/opt300x)
 [![Docs](https://docs.rs/opt300x/badge.svg)](https://docs.rs/opt300x)
+![MSRV](https://img.shields.io/badge/rustc-1.62+-blue.svg)
 [![Build Status](https://github.com/eldruin/opt300x-rs/workflows/Build/badge.svg)](https://github.com/eldruin/opt300x-rs/actions?query=workflow%3ABuild)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/opt300x-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/opt300x-rs?branch=master)
 
@@ -79,6 +80,11 @@ fn main() {
 
 For questions, issues, feature requests, and other changes, please file an
 [issue in the github project](https://github.com/eldruin/opt300x-rs/issues).
+
+## Minimum Supported Rust Version (MSRV)
+
+This crate is guaranteed to compile on stable Rust 1.62 and up. It *might*
+compile with older versions but that may change in any new patch release.
 
 ## License
 
